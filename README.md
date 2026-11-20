@@ -17,7 +17,7 @@ and renders the final clips. Nothing is ever posted automatically; you review ev
 
 ```bash
 cd ~
-git clone https://github.com/YOUR-USERNAME/YOUR-REPO.git "GTA 6 Clipping"
+git clone https://github.com/conororchard7-jpg/REPO-NAME.git "GTA 6 Clipping"
 cd ~/"GTA 6 Clipping"
 bash setup.sh
 ```
