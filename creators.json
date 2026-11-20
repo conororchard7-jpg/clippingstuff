@@ -1,0 +1,286 @@
+[
+ {
+  "name": "stableronaldo",
+  "display": "Stable Ronaldo",
+  "group": "CORE",
+  "enabled": true,
+  "url": "https://www.twitch.tv/stableronaldo/videos?filter=archives",
+  "permission": "TESTING - no campaign yet; review only, do not post",
+  "facecam": [
+   340,
+   290,
+   0,
+   580
+  ],
+  "facecam_verified": true,
+  "max_hours": 3,
+  "latest_vods": 1,
+  "title_filter": "(?i)gta|grand theft",
+  "youtube": [
+   "@stableronaldoyt",
+   "@StableRonaldo"
+  ],
+  "youtube_url": "https://www.youtube.com/@stableronaldoyt",
+  "youtube_channel": "Stable Ronaldo",
+  "game_area": [
+   960,
+   1080,
+   355,
+   0
+  ],
+  "game_area_note": "right of facecam/minimap, left of chat"
+ },
+ {
+  "name": "adapt",
+  "display": "Adapt",
+  "group": "CORE",
+  "enabled": true,
+  "url": "https://www.twitch.tv/adapt/videos?filter=archives",
+  "permission": "TESTING - no campaign yet; review only, do not post",
+  "facecam": [
+   580,
+   270,
+   0,
+   0
+  ],
+  "facecam_verified": true,
+  "max_hours": 3,
+  "latest_vods": 1,
+  "title_filter": "(?i)gta|grand theft",
+  "youtube": [
+   "@adapt",
+   "@FaZeAdapt"
+  ],
+  "youtube_url": "https://www.youtube.com/@adapt",
+  "youtube_channel": "Adapt",
+  "game_area": [
+   1920,
+   850,
+   0,
+   230
+  ],
+  "game_area_note": "skips his top chat overlay + sub counter"
+ },
+ {
+  "name": "marlon",
+  "display": "Marlon",
+  "group": "CORE",
+  "enabled": true,
+  "url": "https://www.twitch.tv/marlon/videos?filter=archives",
+  "permission": "TESTING - no campaign yet; review only, do not post",
+  "facecam": [
+   560,
+   310,
+   0,
+   0
+  ],
+  "facecam_verified": true,
+  "max_hours": 3,
+  "latest_vods": 1,
+  "title_filter": "(?i)gta|grand theft",
+  "youtube": [
+   "@mar3lg",
+   "@marlon"
+  ],
+  "youtube_url": "https://www.youtube.com/@mar3lg",
+  "youtube_channel": "Marlon",
+  "game_area": [
+   800,
+   1080,
+   570,
+   0
+  ],
+  "game_area_note": "between facecam (left) and chat overlay (right)"
+ },
+ {
+  "name": "silky",
+  "display": "Silky",
+  "group": "CORE",
+  "enabled": true,
+  "url": "https://www.twitch.tv/silky/videos?filter=archives",
+  "permission": "TESTING - no campaign yet; review only, do not post",
+  "facecam": null,
+  "facecam_verified": false,
+  "max_hours": 3,
+  "latest_vods": 1,
+  "title_filter": "(?i)gta|grand theft",
+  "youtube": [
+   "@silky",
+   "@silkythedon",
+   "@Silkyy"
+  ]
+ },
+ {
+  "name": "jasontheween",
+  "display": "JasonTheWeen",
+  "group": "CORE",
+  "enabled": true,
+  "url": "https://www.twitch.tv/jasontheween/videos?filter=archives",
+  "permission": "TESTING - no campaign yet; review only, do not post",
+  "facecam": [
+   420,
+   288,
+   1490,
+   482
+  ],
+  "facecam_verified": true,
+  "max_hours": 3,
+  "latest_vods": 1,
+  "title_filter": "(?i)gta|grand theft",
+  "youtube": [
+   "channel/UCxoKaKMzulp6sfQGOhNJnzQ",
+   "@jasontheween"
+  ],
+  "youtube_url": "https://www.youtube.com/channel/UCxoKaKMzulp6sfQGOhNJnzQ",
+  "youtube_channel": "JasonTheWeen",
+  "game_area": [
+   860,
+   1080,
+   600,
+   0
+  ],
+  "game_area_note": "between chat (left) and facecam (right)"
+ },
+ {
+  "name": "lacy",
+  "display": "Lacy",
+  "group": "ex-CORE",
+  "enabled": true,
+  "url": "https://www.twitch.tv/lacy/videos?filter=archives",
+  "permission": "TESTING - no campaign yet; review only, do not post",
+  "facecam": [
+   490,
+   270,
+   0,
+   0
+  ],
+  "facecam_verified": true,
+  "max_hours": 3,
+  "latest_vods": 1,
+  "title_filter": "(?i)gta|grand theft",
+  "game_area": [
+   830,
+   1080,
+   540,
+   0
+  ],
+  "game_area_note": "between facecam (left) and chat (right)"
+ },
+ {
+  "name": "jynxzi",
+  "display": "Jynxzi",
+  "enabled": false,
+  "url": "https://www.twitch.tv/jynxzi/videos?filter=archives",
+  "permission": "TESTING - no campaign yet; review only, do not post",
+  "facecam": [
+   500,
+   352,
+   0,
+   462
+  ],
+  "facecam_verified": true,
+  "max_hours": 3,
+  "latest_vods": 1,
+  "note": "added from a VOD link; enabled=false so it is only processed when you send VODs"
+ },
+ {
+  "name": "clix",
+  "display": "Clix",
+  "enabled": false,
+  "url": "https://www.twitch.tv/clix/videos?filter=archives",
+  "permission": "TESTING - no campaign yet; review only, do not post",
+  "facecam": [
+   484,
+   276,
+   0,
+   0
+  ],
+  "facecam_verified": true,
+  "max_hours": 3,
+  "latest_vods": 1,
+  "note": "manual VODs only"
+ },
+ {
+  "name": "kaicenat",
+  "display": "Kai Cenat",
+  "enabled": false,
+  "url": "https://www.twitch.tv/kaicenat/videos?filter=archives",
+  "permission": "TESTING - no campaign yet; review only, do not post",
+  "facecam": [
+   390,
+   206,
+   2,
+   436
+  ],
+  "facecam_verified": true,
+  "max_hours": 3,
+  "latest_vods": 1,
+  "title_filter": "(?i)gta|grand theft",
+  "note": "manual VODs only (added from Conor's VOD link)",
+  "game_area": [
+   1300,
+   1080,
+   420,
+   0
+  ],
+  "game_area_note": "right of facecam/chat, left of sub counter"
+ },
+ {
+  "name": "asianjeff",
+  "display": "AsianJeff",
+  "enabled": false,
+  "url": "https://www.twitch.tv/asianjeff/videos?filter=archives",
+  "permission": "TESTING - no campaign yet; review only, do not post",
+  "facecam": [
+   470,
+   320,
+   0,
+   328
+  ],
+  "facecam_verified": true,
+  "max_hours": 3,
+  "latest_vods": 1,
+  "title_filter": "(?i)gta|grand theft",
+  "note": "manual VODs only (added from Conor's VOD link)",
+  "game_area": [
+   840,
+   1080,
+   540,
+   0
+  ]
+ },
+ {
+  "name": "gattouz",
+  "display": "Gattouz",
+  "group": "CAMPAIGN",
+  "enabled": false,
+  "platform": "kick",
+  "kick": "gattouz0",
+  "url": "https://kick.com/gattouz0/videos",
+  "permission": "CAMPAIGN: Whop - Gattouz GTA VI (1WIN sponsor). Post-ready: tag @gattouz0, disclose sponsorship.",
+  "facecam": [
+   584,
+   328,
+   0,
+   0
+  ],
+  "facecam_verified": true,
+  "watermark": false,
+  "hashtags": [
+   "@gattouz0",
+   "#ad",
+   "#gattouz",
+   "#gta6",
+   "#gtavi",
+   "#gta6clips",
+   "#kick",
+   "#streamer",
+   "#gaming"
+  ],
+  "campaign": "CAMPAIGN RULES (Gattouz / 1WIN, Whop): hook or strongest moment in the FIRST 2 SECONDS (start the cut on it); one standout moment (police chase, Lucia interaction, mission gone wrong, funny chat exchange); enough context to follow without the stream; >=10 s (aim 15-30 s); GTA VI gameplay from his own VOD only; the 1WIN branding must stay fully visible (it is the logo on his shirt in the facecam: keep the facecam, title goes below the seam, never cover it); no fake quotes, no misleading claims, nothing about free money/betting wins; English captions.",
+  "note": "Kick VODs: scripts/get_kick.py <kick VOD link>",
+  "title_below_cam": true,
+  "branding_note": "1WIN logo is on his shirt inside the facecam: facecam-on-top keeps it large; title sits below the seam so it never covers it",
+  "captions": true
+ }
+]

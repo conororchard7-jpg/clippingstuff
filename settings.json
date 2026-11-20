@@ -1,0 +1,50 @@
+{
+  "watermark": "",
+  "whisper_model": "mlx-community/distil-whisper-large-v3",
+  "auto_mode": "chat-first",
+  "chat_first_top": 12,
+  "title_style": "box",
+  "title_font": "Inter",
+  "caption_font": "Archivo Black",
+  "orchestrator": true,
+  "auto_discover": true,
+  "auto_clean": true,
+  "grabbers": 3,
+  "profiles": {
+    "vod": {
+      "_why": "Twitch VODs: long, slow, chat is the best signal; first minutes are 'starting soon'/PS5 menus",
+      "w_loud": 0.25,
+      "w_laugh": 2.0,
+      "w_chat": 0.5,
+      "floor": 0.8,
+      "gap": 120,
+      "pre": 60,
+      "post": 35,
+      "skip_start": 600,
+      "skip_end": 0
+    },
+    "youtube": {
+      "_why": "YouTube: no chat, often already edited (denser, faster); skip intros/outros and sponsor reads; sections ~100 s so Creator Rewards cuts (61-90 s) fit",
+      "w_loud": 0.3,
+      "w_laugh": 2.5,
+      "w_chat": 0.0,
+      "floor": 0.5,
+      "gap": 75,
+      "pre": 55,
+      "post": 45,
+      "skip_start": 45,
+      "skip_end": 60,
+      "per_10min": 1,
+      "min_moments": 3,
+      "max_moments": 8
+    }
+  },
+  "scribes": 2,
+  "yt_listeners": 4,
+  "yt_grabbers": 5,
+  "yt_scribes": 3,
+  "style": "box",
+  "cam_h": 790,
+  "captions": false,
+  "style_note": "box = @clippingwnl reference: facecam top ~41% full width, sentence-case headline in a white box on the seam, no burned captions, no watermark. For the old look: style/title_style 'outline', captions true, watermark '@cogiclips5'."
+}

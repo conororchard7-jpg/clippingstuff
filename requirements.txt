@@ -1,0 +1,3 @@
+numpy
+chat-downloader
+# Whisper is installed by scripts/install_mac.sh (mlx-whisper on Apple Silicon, openai-whisper on Intel)
