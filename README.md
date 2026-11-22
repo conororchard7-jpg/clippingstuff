@@ -49,9 +49,12 @@ or leave it `""` for no watermark (the current "box" style uses none).
 
 ```bash
 cd ~/"GTA 6 Clipping"
-.venv/bin/python scripts/orchestrate.py queue https://www.twitch.tv/videos/<id>
+.venv/bin/python scripts/orchestrate.py queue https://www.twitch.tv/videos/<id>   # or paste links to Claude
 .venv/bin/python scripts/orchestrate.py run
 ```
+
+**Easier: turn on the queue watcher once** (`bash scripts/install_queue_watcher.sh`). After that, just paste
+VOD links to Claude in chat. Claude queues them and your Mac starts downloading by itself.
 
 **Then ask Claude:** "clip the next brief". Claude reads the brief and contact sheet, picks 5 moments,
 renders them into `final/`, and writes captions to `copy.md` and a checklist to `review.md`.
@@ -69,6 +72,17 @@ Other useful commands:
 If YouTube downloads fail with a JavaScript error: `brew install deno`.
 
 ---
+
+## 2b. Full autopilot (no Claude, no tokens)
+
+```bash
+bash scripts/install_render.sh                 # once: an ffmpeg that can burn in titles
+bash clip.sh                                   # check channels, clip whatever is new
+bash clip.sh https://www.twitch.tv/videos/123  # or give it links / numbers
+```
+Picks the 5 best moments per VOD from chat spikes, yelling and laughter, titles them with a real quote,
+and renders them into `final/<streamer>/`. It can't see the video, so watch each clip before posting.
+Want it hands-free? `bash scripts/install_queue_watcher.sh --auto` runs this whenever something is queued.
 
 ## 3. Splitting the work (so we don't clip the same thing)
 

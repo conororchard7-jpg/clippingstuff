@@ -4,11 +4,13 @@ ONE compact brief per VOD, so Claude only does judgment (which moment, where it 
 what the title says) and never reads raw transcripts, chat logs or long command output.
 
   orchestrate.py status                 one-screen summary (what Claude reads first)
-  orchestrate.py queue <twitch VOD url> [...]   add VODs by hand
+  orchestrate.py queue <links or VOD numbers> [...]   add VODs by hand (the queue watcher starts them)
   orchestrate.py run                    discover -> chat -> sections -> transcribe -> brief,
                                         then render any decisions Claude wrote, then clean
   orchestrate.py next                   path of the next brief waiting for Claude
+  orchestrate.py auto [--top 5]         run + auto-pick (no Claude, no tokens) + render, all in one
   orchestrate.py brief <base>           (re)build briefs/<base>.md + contact sheet
+  orchestrate.py check <base>           ONE image: 5 frames across each picked clip + black/frozen flags (before render)
   orchestrate.py render [<base>]        build clips from decisions/<base>.json
   orchestrate.py clean [--dry]          delete raw media nobody needs any more
 
@@ -24,6 +26,19 @@ import agentstate as A                       # noqa: E402
 
 ROOT = A.ROOT
 os.chdir(ROOT)
+for _d in (os.path.join(ROOT, "tools", "ffmpeg"), "/opt/homebrew/opt/ffmpeg-full/bin", "/usr/local/opt/ffmpeg-full/bin"):
+    if os.path.exists(os.path.join(_d, "ffmpeg")):          # a full ffmpeg (libass) wins over Homebrew's slim one
+        os.environ["PATH"] = _d + ":" + os.environ["PATH"]
+        break
+
+
+def can_render():
+    """True when this ffmpeg has libass (needed for the title/caption burn-in)."""
+    try:
+        out = subprocess.run(["ffmpeg", "-hide_banner", "-filters"], capture_output=True, text=True).stdout
+        return " ass " in out
+    except Exception:
+        return False
 for d in ("briefs", "decisions", "state", "vods", "transcripts", "moments", "frames", "final", "renders", "chat"):
     os.makedirs(d, exist_ok=True)
 QUEUE = "state/queue.json"
@@ -108,9 +123,23 @@ def queue_add(url, base=None, source="manual"):
     return True
 
 
+def parse_vod_ids(texts):
+    """Twitch VOD ids from links, bare numbers or v-numbers, any number per string."""
+    out = []
+    for t in texts:
+        for m in re.finditer(r"(?:videos/|\bv?)(\d{8,12})\b", t):
+            if m.group(1) not in out:
+                out.append(m.group(1))
+    return out
+
+
 def cmd_queue(urls):
-    for u in urls:
-        print(("queued " if queue_add(u) else "already queued ") + u)
+    ids = parse_vod_ids(urls)
+    if not ids:
+        sys.exit("no Twitch VOD link or number found")
+    for vid in ids:
+        print(("queued " if queue_add(f"https://www.twitch.tv/videos/{vid}") else "already queued ") + vid)
+    print("the queue watcher on the Mac starts downloading by itself (if installed)")
 
 
 # ---------------------------------------------------------------- discover
@@ -253,9 +282,7 @@ def make_brief(base):
                 "VIRAL RULES: (1) pick moments a stranger would send to a friend - a fail, a roast, a confident claim instantly disproved, "
                 "a wild NPC/cop interaction - not just yelling; viewer clips / chat emote spikes beat loudness. "
                 "(2) the FIRST FRAME must already be interesting: start <=1.5 s before the trigger, never on setup chatter. "
-                "(3) title = a sentence-case HEADLINE that says what happens, streamer name first, 1-2 KEY WORDS in caps, max ~70 chars, no emoji "
-                "(e.g. \"Stable Ronaldo says GTA 6 is DISAPPOINTING, claiming GTA 5 was WAY BETTER\", \"Kai tries to outrun 5 cop cars and it goes HORRIBLY\"); "
-                "never vague (no \"Damn X\", \"what is X doing\"); no fake quotes. The title is shown in a white box on the seam and is the only on-screen text. (4) caption = searchable sentence + 3-5 accurate tags (no #fyp/#viral). "
+                "(3) title = a HOOK that makes people stay to the end. First work out WHY the moment is funny (the setup, the twist, the reaction), then write the SETUP and FORESHADOW the twist without giving it away: streamer name first, specific situation, leave the payoff open, 40-65 chars, 1-2 KEY WORDS in caps, no emoji, no fake quotes, and the clip MUST pay it off. Patterns: confident claim + tease (\"Marlon BRAGS about his driving skills... 10 seconds later\"), trust + doom (\"Jason trusts his getaway driver... he should NOT have\"), instruction + warning (\"Marlon follows the directions to the hallway... big MISTAKE\"), chat vs streamer (\"Chat is SCREAMING the answer and Marlon still can't see it\"), real quote + irony (\"Lacy swears nobody will post this... so here it is\"). Never: vague hype with no subject (\"crazy moment\", \"you won't believe this\"), the punchline itself (\"...and gets eaten by a tiger\"), story spoilers. The title is shown in a white box on the seam and is the only on-screen text. (4) caption = a different, searchable sentence saying what happens (name + game + action) + a short question that invites comments (\"would you have checked the hallway?\"); hashtags 3-5 accurate tags (no #fyp/#viral). "
                 "Main cut 15-30 s ending right after the punchline; 'short' 10-18 s that is the punchline + minimum context. "
                 "Pick the best 3-5; fewer is fine if the VOD is weak - say so. ")) +
                 "Write decisions/" + base + ".json (template below), then run `orchestrate.py render " + base + "`.\n\n")
@@ -320,8 +347,8 @@ def cmd_render(only=None):
         A.agent("editor", "idle", "")
         A.vod(base, "render")
         fc = d.get("facecam")
-        if isinstance(fc, list) or fc is None:
-            # remember the facecam for this creator and these sections
+        if (isinstance(fc, list) or fc is None) and not d.get("auto"):
+            # remember the facecam for this creator and these sections (only when Claude checked it)
             cs = jload("creators.json", []) or []
             for x in cs:
                 if x.get("name") == c["name"] and not x.get("facecam_verified"):
@@ -397,7 +424,7 @@ def cmd_clean(dry=False):
 
 
 # ---------------------------------------------------------------- run / status
-def cmd_run(discover_new=True):
+def cmd_run(discover_new=True, render=True):
     if os.path.exists(LOCK) and time.time() - os.path.getmtime(LOCK) < 3 * 3600:
         print("another run is active"); return
     open(LOCK, "w").write(str(os.getpid()))
@@ -407,24 +434,130 @@ def cmd_run(discover_new=True):
                 discover()
             except Exception as e:
                 A.event(f"Discovery failed: {e}", "scout", level="error")
-        q = queue_load()
-        for item in q:
-            if item.get("done"):
-                continue
+        tried = set()
+        while True:                                  # re-read: links queued mid-run get picked up too
+            q = queue_load()
+            todo = [i for i in q if not i.get("done") and i["id"] not in tried]
+            if not todo:
+                break
+            item = todo[0]
+            tried.add(item["id"])
             try:
                 process(item)
                 item["done"] = A._now()
+                item.pop("error", None)
             except Exception as e:
                 item["error"] = str(e)[:200]
                 A.vod(item.get("base") or f"v{item['id']}", "error", error=str(e)[:160])
-            jsave(QUEUE, q)
-        cmd_render()
+            q2 = queue_load()                        # merge: keep links added while this one ran
+            for x in q2:
+                if x["id"] == item["id"]:
+                    x.update(item)
+            jsave(QUEUE, q2)
+        if render:
+            try:
+                cmd_render()
+            except Exception as e:
+                A.event(f"Render step skipped: {str(e)[:120]}", "cutter", level="error")
     finally:
         if os.path.exists(LOCK):
             os.remove(LOCK)
         for k in ("scout", "chat", "grabber", "scribe", "briefer", "cutter", "qa"):
             if A.load()["agents"][k]["state"] == "working":
                 A.agent(k, "idle")
+
+
+def _luma(path):
+    """Average brightness 0-255 of an image (1x1 gray scale-down), or -1."""
+    r = subprocess.run(["ffmpeg", "-v", "error", "-i", path, "-vf", "scale=1:1,format=gray", "-f", "rawvideo", "-"],
+                       capture_output=True)
+    return r.stdout[0] if r.stdout else -1
+
+
+def cmd_check(base, n=5):
+    """One compact image per VOD: a row of n frames across each un-rendered clip (main cut), so Claude can verify
+    gameplay/layout/payoff in ONE image. Also flags black or frozen frames for free. -> frames/<base>/check.jpg"""
+    d = jload(f"decisions/{base}.json") or {}
+    clips = [c for c in d.get("clips", []) if not c.get("rendered")]
+    if not clips:
+        print("nothing to check"); return
+    tmp = f"frames/{base}/chk_{time.strftime('%H%M%S')}"
+    os.makedirs(tmp, exist_ok=True)
+    font = os.path.join(ROOT, "fonts", "Inter-Bold.otf")
+    rows, notes = [], []
+    for ci, c in enumerate(clips):
+        src = glob.glob(f"vods/{c['section']}.*")
+        if not src:
+            notes.append(f"{c['id']}: raw section missing - can't render"); continue
+        a, b = float(c["start"]), float(c["end"])
+        ts = [a + (b - a) * (i + 0.5) / n for i in range(n)]
+        frames, lum, sizes = [], [], []
+        for i, t in enumerate(ts):
+            out = f"{tmp}/{ci:02d}_{i}.jpg"
+            subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", f"{t:.2f}", "-i", src[0], "-frames:v", "1",
+                            "-vf", "scale=240:135", "-q:v", "6", out], capture_output=True)
+            if os.path.exists(out):
+                frames.append(out); lum.append(_luma(out)); sizes.append(os.path.getsize(out))
+        if not frames:
+            notes.append(f"{c['id']}: no frames"); continue
+        dark = [f"{ts[i] - a:.0f}s" for i, v in enumerate(lum) if 0 <= v < 18]
+        if dark:
+            notes.append(f"{c['id']}: DARK/BLACK at {', '.join(dark)}")
+        if len(set(sizes)) == 1 and len(sizes) > 2:
+            notes.append(f"{c['id']}: frames look IDENTICAL (frozen/paused?)")
+        row = f"{tmp}/row{ci:02d}.jpg"
+        lab = (f",drawtext=fontfile='{font}':text='{c['id']}':fontsize=22:fontcolor=yellow:box=1:boxcolor=black@0.7:x=4:y=4"
+               if os.path.exists(font) else "")
+        inputs = sum((["-i", f] for f in frames), [])
+        r = subprocess.run(["ffmpeg", "-v", "error", "-y", *inputs, "-filter_complex",
+                            f"hstack=inputs={len(frames)}{lab}" if len(frames) > 1 else f"null{lab}", row], capture_output=True)
+        if r.returncode != 0 and lab:                       # this ffmpeg has no drawtext: unlabeled row
+            subprocess.run(["ffmpeg", "-v", "error", "-y", *inputs, "-filter_complex",
+                            f"hstack=inputs={len(frames)}" if len(frames) > 1 else "null", row], capture_output=True)
+        if os.path.exists(row):
+            rows.append((c["id"], row))
+    out = f"frames/{base}/check.jpg"
+    if rows:
+        inputs = sum((["-i", r] for _, r in rows), [])
+        subprocess.run(["ffmpeg", "-v", "error", "-y", *inputs, "-filter_complex",
+                        f"vstack=inputs={len(rows)}" if len(rows) > 1 else "null", "-q:v", "5", out], capture_output=True)
+        print(f"{out}  rows top->bottom: {' '.join(i for i, _ in rows)}  ({n} frames across each main cut)")
+    for x in notes:
+        print("  ! " + x)
+    if not notes:
+        print("  auto-checks: no black or frozen frames")
+
+
+def cmd_auto(discover_new=True, top=5):
+    """One command, zero tokens: download + transcribe everything queued, auto-pick clips, render them."""
+    cmd_run(discover_new=discover_new, render=False)
+    import autopick
+    picked = []
+    for base, v in A.load()["vods"].items():
+        if v.get("stage") == "awaiting_claude" and os.path.exists(f"briefs/{base}.md") \
+                and not os.path.exists(f"decisions/{base}.json"):
+            A.agent("editor", "working", f"Auto-picking clips for {base.split('__')[0]} (no tokens)", base)
+            try:
+                if autopick.pick(base, top):
+                    picked.append(base)
+            except Exception as e:
+                A.event(f"Auto-pick failed: {str(e)[:100]}", "editor", base, level="error")
+            A.agent("editor", "idle", "")
+    if not picked:
+        print("nothing new to auto-pick")
+    if not can_render():
+        print("!! this ffmpeg can't burn titles (no libass). Run once:  bash scripts/install_render.sh")
+        print("   picks are saved in decisions/; run  orchestrate.py auto  again after installing.")
+        return
+    for base in picked + [os.path.basename(p)[:-5] for p in glob.glob("decisions/*.json")]:
+        d = jload(f"decisions/{base}.json") or {}
+        if all(c.get("rendered") for c in d.get("clips", [])):
+            continue
+        try:
+            cmd_render(base)
+        except Exception as e:
+            A.event(f"Render failed for {base}: {str(e)[:100]}", "cutter", base, level="error")
+    print("done - clips are in final/<streamer>/ (auto picks: watch before posting)")
 
 
 def _claude_on(base, more=False):
@@ -466,8 +599,10 @@ if __name__ == "__main__":
     cmd = a[0] if a else "status"
     if cmd == "status": cmd_status()
     elif cmd == "queue": cmd_queue(a[1:])
-    elif cmd == "run": cmd_run(discover_new="--no-discover" not in a)
+    elif cmd == "run": cmd_run(discover_new="--no-discover" not in a, render="--no-render" not in a)
     elif cmd == "next": cmd_next()
+    elif cmd == "check": cmd_check(a[1])
+    elif cmd == "auto": cmd_auto(discover_new="--no-discover" not in a, top=int(a[a.index("--top") + 1]) if "--top" in a else 5)
     elif cmd == "brief": make_brief(a[1])
     elif cmd == "render": cmd_render(a[1] if len(a) > 1 else None)
     elif cmd == "clean": print(f"freed {cmd_clean('--dry' in a)/1e9:.2f} GB")

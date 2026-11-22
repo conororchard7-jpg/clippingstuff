@@ -43,3 +43,18 @@ This folder is a clone of the shared `cogiclips-kit` repo. Each clipper runs it 
 - Only clip creators with `"enabled": true` in creators.json; the other clipper covers the rest.
 - Branding comes from settings.json (`watermark`, `style`). Never hard-code a handle.
 - VODs, transcripts, briefs, decisions and final/ are local to this Mac and never committed.
+
+## Queue
+When the clipper pastes Twitch VOD links or numbers, run `python3 scripts/orchestrate.py queue <everything pasted>`.
+The queue watcher (installed once with `bash scripts/install_queue_watcher.sh`) starts the download run by itself;
+a run keeps going until the queue is empty. Then check back with `status` / `next`.
+
+## Autopilot (no Claude, no tokens)
+`bash clip.sh [links]` = queue + download + transcribe + `scripts/autopick.py` (scores the brief, picks 5, titles from real quotes) + render.
+Auto decisions carry `"auto": true` and ids a01..; Claude never overwrites them silently. If the clipper asks Claude to redo one, rename it
+(decisions/<base>.json -> backups/) first. Rendering on the Mac needs a libass ffmpeg: `bash scripts/install_render.sh` once.
+
+## Verify before render (added 2026-11-21)
+After writing decisions and BEFORE render: `python3 scripts/orchestrate.py check <base>` -> warnings (black/frozen/missing) +
+frames/<base>/check.jpg = one row of 5 frames across each picked clip. View that ONE image; drop/re-time clips that show
+webcam-only layouts, menus, black screens, lone cutscenes, non-GTA or no payoff. Costs ~1 image per VOD.
